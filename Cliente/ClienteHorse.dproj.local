@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2024/09/04 11:15:12.000.312,=C:\Users\zupel\OneDrive\Documentos\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 14:46:05.000.548,=C:\Users\zupel\OneDrive\Documentos\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 15:07:21.000.308,D:\Aulas\Delphi\Proj Horse\Cliente\uPrincipal.dfm=C:\Users\zupel\OneDrive\Documentos\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2024/10/29 15:07:21.000.308,D:\Aulas\Delphi\Proj Horse\Cliente\uPrincipal.pas=C:\Users\zupel\OneDrive\Documentos\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 15:07:34.000.836,D:\Aulas\Delphi\Proj Horse\Cliente\ClienteHorse.dproj=C:\Users\zupel\OneDrive\Documentos\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2024/10/29 15:38:45.000.074,=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 15:40:24.000.854,D:\Aulas\Delphi\Proj Horse\Cliente\DataM_Pessoa.dfm=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.dfm</Transaction>
+    <Transaction>2024/10/29 15:40:24.000.854,D:\Aulas\Delphi\Proj Horse\Cliente\DataM_Pessoa.pas=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 16:05:36.000.290,=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 16:06:41.000.455,D:\Aulas\Delphi\Proj Horse\Cliente\uPessoaCad.pas=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 16:06:41.000.455,D:\Aulas\Delphi\Proj Horse\Cliente\uPessoaCad.dfm=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.dfm</Transaction>
+    <Transaction>2024/10/29 16:07:48.000.548,=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 16:08:17.000.314,D:\Aulas\Delphi\Proj Horse\Cliente\uEnderecoCad.dfm=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.dfm</Transaction>
+    <Transaction>2024/10/29 16:08:17.000.314,D:\Aulas\Delphi\Proj Horse\Cliente\uEnderecoCad.pas=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 16:19:08.000.137,=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/10/29 16:23:11.000.645,D:\Aulas\Delphi\Proj Horse\Cliente\uThread.pas=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/10/30 13:14:43.000.084,D:\Aulas\Delphi\Proj Horse\Cliente\DataM_Pessoa.dfm=D:\Aulas\Delphi\Proj Horse\Cliente\DataM.dfm</Transaction>
+    <Transaction>2024/10/30 13:14:43.000.084,D:\Aulas\Delphi\Proj Horse\Cliente\DataM_Pessoa.pas=D:\Aulas\Delphi\Proj Horse\Cliente\DataM.pas</Transaction>
+    <Transaction>2024/11/01 16:47:52.000.983,=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/11/01 16:51:55.000.288,D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.dfm=D:\Aulas\Delphi\Proj Horse\Cliente\uEditarExcluir.dfm</Transaction>
+    <Transaction>2024/11/01 16:51:55.000.288,D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas=D:\Aulas\Delphi\Proj Horse\Cliente\uEditarExcluir.pas</Transaction>
+  </Transactions>
+</BorlandProject>

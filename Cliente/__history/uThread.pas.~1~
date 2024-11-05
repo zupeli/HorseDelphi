@@ -1,0 +1,33 @@
+unit uThread;
+
+interface
+
+uses System.SysUtils, System.UITypes, Vcl.Forms, Vcl.Graphics, Vcl.WinXCtrls,
+  Vcl.StdCtrls, System.Classes, Vcl.Dialogs;
+
+type
+  TMyThreadMethod = procedure(Sender: TObject) of object;
+
+  TMyThread = class
+    private
+    public
+      class procedure ExecuteThread(proc: TProc;
+                                    procTerminate: TMyThreadMethod);
+    end;
+
+implementation
+
+class procedure TMyThread.ExecuteThread(proc: TProc;
+                                       procTerminate: TMyThreadMethod);
+var
+  vTread: TThread;
+begin
+  vTread := TThread.CreateAnonymousThread(proc);
+
+  if Assigned(procTerminate) then
+      vTread.OnTerminate := procTerminate;
+
+  vTread.Start;
+end;
+
+end.

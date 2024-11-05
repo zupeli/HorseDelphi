@@ -1,0 +1,72 @@
+unit uPessoaCad;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Mask, Vcl.StdCtrls,
+  Vcl.Samples.Gauges, Vcl.ExtCtrls;
+
+type
+  TFrmPessoaCad = class(TForm)
+    GroupBox1: TGroupBox;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    edDocumento: TEdit;
+    edNome: TEdit;
+    edSobrenome: TEdit;
+    RadioGroup1: TRadioGroup;
+    btSalvar: TButton;
+    btSair: TButton;
+    procedure btSalvarClick(Sender: TObject);
+  private
+    FidPessoa: Integer;
+    procedure TerminateSalvar(Sender: TObject);
+    { Private declarations }
+  public
+    { Public declarations }
+
+    property idPessoa  : Integer  read FidPessoa   write FidPessoa;
+  end;
+
+var
+  FrmPessoaCad: TFrmPessoaCad;
+
+implementation
+
+uses  DataM, uThread;
+
+{$R *.dfm}
+
+procedure TFrmPessoaCad.btSalvarClick(Sender: TObject);
+begin
+  TMyThread.ExecuteThread(procedure
+  begin
+    if FidPessoa = 0 then
+    begin
+      DM.Inserir(edDocumento.Text, edNome.Text, edSobrenome.Text, '');
+    end
+    else
+    begin
+//      DM_Pessoa.Editar(TNavigation.ParamInt, TNavigation.ParamIntEnd, edDocumento.Text,
+//                       edNome.Text, edSobrenome.Text, edCEP.Text, edUF.Text, edCidade.Text,
+//                       edBairro.Text, edLogradouro.Text, edComplemento.Text);
+    end;
+
+  end, TerminateSalvar);
+end;
+
+procedure TFrmPessoaCad.TerminateSalvar(Sender: TObject);
+begin
+
+  if Sender is TThread then
+    if Assigned(TThread(sender).FatalException) then
+    begin
+      showmessage(Exception(TThread(sender).FatalException).Message);
+      exit;
+    end;
+
+end;
+
+end.

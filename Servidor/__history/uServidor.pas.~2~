@@ -1,0 +1,63 @@
+unit uServidor;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Buttons;
+
+type
+  TForm1 = class(TForm)
+    Label1: TLabel;
+    lbPorta: TLabel;
+    btnStop: TBitBtn;
+    btnStart: TBitBtn;
+    edtPort: TEdit;
+  private
+    { Private declarations }
+    procedure Status;
+    procedure Start;
+    procedure Stop;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+{ TForm1 }
+
+procedure TForm1.Start;
+begin
+  THorse.Use(Jhonson());
+  THorse.Use(Cors);
+
+//  Controllers.Pessoa.RegistarRotas;
+  THorse.Listen(StrToInt(edtPort.Text));
+end;
+
+procedure TForm1.Status;
+begin
+  btnStop.Enabled  := THorse.IsRunning;
+  btnStart.Enabled := not THorse.IsRunning;
+  edtPort.Enabled  := not THorse.IsRunning;
+  if THorse.IsRunning then
+  begin
+    lbPorta.Caption  := 'Status >> Conectado (porta:' + Thorse.Port.ToString + ')';
+  end
+  else
+  begin
+    lbPorta.Caption  := 'Status >> Desconectado';
+  end;
+end;
+
+procedure TForm1.Stop;
+begin
+  THorse.StopListen;
+end;
+
+end.

@@ -1,0 +1,257 @@
+unit Controller.rota.pessoa;
+
+interface
+
+uses  System.JSON, System.SysUtils, Horse;
+
+procedure RegistarRotas;
+procedure Listar(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+procedure Listar_Id(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+procedure InserirPessoa(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+procedure InserirEnderecoCEP(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+procedure Excluir(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+procedure EditarPessoa(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+procedure EditarEnderecoCEP(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+
+
+implementation
+
+uses
+  uPessoa, uEndereco;
+
+// rotas endpoint
+procedure RegistarRotas;
+begin
+  Thorse.Get('/pessoa'              , listar);
+  Thorse.Get('/pessoa/:id_pessoa'   , Listar_Id);
+  Thorse.post('/InserirPessoa'      , InserirPessoa);
+  Thorse.post('/InserirEndereco'    , InserirEnderecoCEP);
+  Thorse.put('/pessoa'              , EditarPessoa);
+  Thorse.Delete('/pessoa/:id_pessoa', ExcluirPessoa);
+end;
+
+procedure EditarPessoa(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+var
+  vBody : TJSONObject;
+  vOjbPessoa : Tpessoa;
+begin
+  try
+    vOjbPessoa := Tpessoa.Create;
+    try
+
+      try
+        vOjbPessoa.idPessoa := Req.Query['id_pessoa'  ].ToInteger;
+      except
+        vOjbPessoa.idPessoa := 0;
+      end;
+
+      {
+      try
+        vIdEnd := Req.Query['id_endereco'].ToInteger;
+      except
+        vIdEnd := 0;
+      end;
+      }
+      vBody := Req.Body<TJSONObject>;
+
+      vOjbPessoa.Documento   := vBody.GetValue<string>('dsdocumento'  , '');
+      vOjbPessoa.Nome        := vBody.GetValue<string>('nmprimeiro'   , '');
+      vOjbPessoa.Sobrenome   := vBody.GetValue<string>('nmsegundo'    , '');
+      vOjbPessoa.Natureza    := vBody.GetValue<integer>('flnatureza'  ,  0);
+
+      {
+      vCEP         := vBody.GetValue<string>('dscep'        , '');
+      vUF          := vBody.GetValue<string>('dsuf'         , '');
+      vCidade      := vBody.GetValue<string>('nmcidade'     , '');
+      vBairro      := vBody.GetValue<string>('nmbairro'     , '');
+      vLogradouro  := vBody.GetValue<string>('nmlogradouro' , '');
+      vComplemento := vBody.GetValue<string>('dscomplemento', '');
+      }
+      Res.Send<TJsonObject>(vOjbPessoa.EditarPessoa).Status(201);
+    except on ex:exception do
+      Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+    end;
+
+  finally
+    FreeAndNil(vOjbPessoa);
+  end;
+end;
+
+procedure EditarEnderecoCEP(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+var
+  vBody : TJSONObject;
+  vOjbEndereco : TEndereco;
+  vIdPessoa : integer;
+begin
+  try
+    vOjbEndereco := TEndereco.Create;
+    try
+
+      try
+        vIdPessoa := Req.Query['id_pessoa'].ToInteger;
+      except
+        vIdPessoa := 0;
+      end;
+
+      vBody := Req.Body<TJSONObject>;
+      vOjbEndereco.dsCEP  := vBody.GetValue<string>('dscep', '');
+
+      Res.Send<TJsonObject>(vOjbEndereco.EditarEnderecoCEP(vIdPessoa)).Status(201);
+    except on ex:exception do
+      Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+    end;
+
+  finally
+    FreeAndNil(vOjbEndereco);
+  end;
+end;
+
+procedure InserirPessoa(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+var
+  vOjbPessoa : Tpessoa;
+  vBody      : TJSONObject;
+begin
+  vOjbPessoa := Tpessoa.Create;
+  try
+    vBody := Req.Body<TJSONObject>;
+
+    vOjbPessoa.Documento := vBody.GetValue<string>('dsdocumento'  , '');
+    vOjbPessoa.Nome      := vBody.GetValue<string>('nmprimeiro'   , '');
+    vOjbPessoa.Sobrenome := vBody.GetValue<string>('nmsegundo'    , '');
+    vOjbPessoa.Natureza  := vBody.GetValue<integer>('flnatureza'  ,  0);
+
+    Res.Send<TJsonObject>(vOjbPessoa.InserirPessoa).Status(200);
+
+  finally
+    FreeAndNil(vOjbPessoa);
+  end;
+end;
+
+procedure InserirEnderecoCEP(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+var
+  vOjbEndereco : TEndereco;
+  vIdPessoa    : Integer;
+  vBody        : TJSONObject;
+begin
+  vOjbEndereco := TEndereco.Create;
+  try
+    try
+      vIdPessoa := Req.Params['id_pessoa'].ToInteger;
+    except
+      vIdPessoa := 0;
+    end;
+
+    vBody := Req.Body<TJSONObject>;
+    vOjbEndereco.dsCEP := vBody.GetValue<string>('dscep'  , '');
+
+    Res.Send<TJsonObject>(vOjbEndereco.InserirEndereco(vIdPessoa)).Status(200);
+  finally
+    FreeAndNil(vOjbEndereco);
+  end;
+end;
+
+
+procedure ExcluirPessoa(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+var
+  vOjbPessoa   : Tpessoa;
+//  vOjbEndereco : Tendereco;
+begin
+  try
+    vOjbPessoa := Tpessoa.Create;
+    try
+
+      try
+        vOjbPessoa.idPessoa := Req.Params['id_pessoa'].ToInteger;
+      except
+        vOjbPessoa.idPessoa := 0;
+      end;
+
+      {
+      try
+        vOjbEndereco.idEndereco := Req.Query['id_endereco'  ].ToInteger;
+      except
+        vOjbEndereco.idEndereco := 0;
+      end;
+
+      if vOjbEndereco.idEndereco > 0 then
+      begin
+        Res.Send<TJsonObject>(vOjbEndereco.ExcluirEndereco(vOjbPessoa.idPessoa)).Status(200);
+      end
+      else
+      begin
+        Res.Send('Erro ao excluir endereço! ').Status(500);
+      end;
+      }
+
+      if vOjbPessoa.idPessoa > 0 then
+      begin
+        Res.Send<TJsonObject>(vOjbPessoa.ExcluirPessoa).Status(200);
+      end
+      else
+      begin
+        Res.Send('Erro ao excluir a pessoa! ').Status(500);
+      end;
+
+    except on ex:exception do
+      Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+    end;
+  finally
+    FreeAndNil(vOjbPessoa);
+//    FreeAndNil(vOjbEndereco);
+  end;
+end;
+
+
+procedure Listar(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+var
+  vOjbPessoa : Tpessoa;
+begin
+  try
+    VOjbPessoa := Tpessoa.Create;
+    try
+      VOjbPessoa.Nome := Req.Query['filtro'];
+      Res.Send<TJsonArray>(VOjbPessoa.ListarPessoa);
+
+    except on ex:exception do
+      Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+    end;
+
+  finally
+    FreeAndNil(VOjbPessoa);
+  end;
+
+end;
+
+procedure Listar_Id(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+var
+  vOjbPessoa : Tpessoa;
+begin
+  try
+    vOjbPessoa := Tpessoa.Create;
+    try
+      try
+        vOjbPessoa.idPessoa := Req.Params['id_pessoa'].ToInteger;
+      except
+        vOjbPessoa.idPessoa := 0;
+      end;
+
+      if vOjbPessoa.idPessoa > 0 then
+      begin
+        Res.Send<TJsonObject>(vOjbPessoa.ListarPessoaId);
+      end
+      else
+      begin
+        Res.Send('Id da Pessoa está vazio! ').Status(500);
+      end;
+
+    except on ex:exception do
+      Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+    end;
+
+  finally
+    FreeAndNil(vOjbPessoa);
+  end;
+end;
+
+
+end.

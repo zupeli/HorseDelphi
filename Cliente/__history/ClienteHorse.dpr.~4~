@@ -1,0 +1,20 @@
+program ClienteHorse;
+
+uses
+  Vcl.Forms,
+  uPrincipal in 'uPrincipal.pas' {frmPrincipal},
+  DataM_Pessoa in 'DataM_Pessoa.pas' {DM_Pessoa: TDataModule},
+  uPessoaCad in 'uPessoaCad.pas' {FrmPessoaCad},
+  uEnderecoCad in 'uEnderecoCad.pas' {frmEnderecoCad},
+  uThread in 'uThread.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TfrmPrincipal, frmPrincipal);
+  Application.CreateForm(TFrmPessoaCad, FrmPessoaCad);
+  Application.CreateForm(TfrmEnderecoCad, frmEnderecoCad);
+  Application.Run;
+end.
