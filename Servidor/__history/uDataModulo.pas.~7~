@@ -63,7 +63,7 @@ begin
 
   Connection.Params.Clear;
   Connection.Params.Add('DriverID=SQLite');
-  Connection.Params.Add('Database=D:\Aulas\Delphi\Proj Horse\HorseDelphi\Banco\banco.db');
+  Connection.Params.Add('Database=D:\Aulas\Delphi\Proj Horse\Banco\banco.db');
   Connection.Params.Add('User_Name=');
   Connection.Params.Add('Passord=');
   Connection.Params.Add('Port=');

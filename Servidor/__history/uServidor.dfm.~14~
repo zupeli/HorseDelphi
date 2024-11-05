@@ -35,6 +35,7 @@ object frmServidor: TfrmServidor
     Caption = 'Stop'
     Enabled = False
     TabOrder = 0
+    OnClick = btnStopClick
   end
   object btnStart: TBitBtn
     Left = 8
@@ -43,12 +44,13 @@ object frmServidor: TfrmServidor
     Height = 25
     Caption = 'Start'
     TabOrder = 1
+    OnClick = btnStartClick
   end
   object edtPort: TEdit
     Left = 38
     Top = 16
     Width = 60
-    Height = 21
+    Height = 23
     NumbersOnly = True
     TabOrder = 2
     Text = '8080'
