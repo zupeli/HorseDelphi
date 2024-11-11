@@ -13,7 +13,6 @@ uses
   FireDAC.Stan.StorageBin, FireDAC.Comp.DataSet, FireDAC.Comp.Client;
 
 type
-//  TMyThreadMethod = procedure(Sender: TObject) of object;
 
   TfrmPrincipal = class(TForm)
     Button1: TButton;
@@ -30,6 +29,13 @@ type
     edNome: TEdit;
     btEditarExcluir: TButton;
     btCadEndereco: TButton;
+    cdsPessoaflnatureza: TIntegerField;
+    cdsPessoaidpessoa: TIntegerField;
+    cdsPessoadsdocumento: TStringField;
+    cdsPessoanmprimeiro: TStringField;
+    cdsPessoanmsegundo: TStringField;
+    cdsPessoadtregistro: TDateField;
+
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure btPesquisarClick(Sender: TObject);
@@ -42,15 +48,20 @@ type
     procedure GridPessoaExit(Sender: TObject);
     procedure btEditarExcluirClick(Sender: TObject);
     procedure btCadEnderecoClick(Sender: TObject);
+    procedure GridPessoaDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure cdsPessoaAfterOpen(DataSet: TDataSet);
+    procedure cdsPessoaflnaturezaGetText(Sender: TField; var Text: String;
+      DisplayText: Boolean);
   private
     procedure RefreshPessoas;
     procedure TerminateBusca(Sender: TObject);
     procedure IdentarGrid;
+
     { Private declarations }
   public
     { Public declarations }
-//    class procedure ExecuteThread(proc: TProc;
-//                                    procTerminate: TMyThreadMethod);
+
   end;
 
 var
@@ -82,8 +93,16 @@ var
 begin
    vObjForm := TfrmEnderecoCad.create(nil);
    try
-//     vObjForm.idPessoa := 0;
+     vObjForm.idEndereco := 0;
+     vObjForm.idPessoa   := cdsPessoa.FieldByName('idpessoa'  ).AsInteger;
+     vObjForm.dsPessoa   := cdsPessoa.FieldByName('idpessoa'  ).Asstring + ' - ' +
+                            cdsPessoa.FieldByName('nmprimeiro').AsString;
      vObjForm.ShowModal;
+
+     if Assigned(vObjForm.OnClose) then
+     begin
+      RefreshPessoas;
+     end;
 
    finally
      FreeAndNil(vObjForm)
@@ -97,8 +116,17 @@ var
 begin
    vObjForm := TfrmEditarExcluir.create(nil);
    try
-     vObjForm.idPessoa := cdsPessoa.FieldByName('dsdocumento').AsInteger;
+     vObjForm.idPessoa             := cdsPessoa.FieldByName('idpessoa'   ).AsInteger;
+     vObjForm.edDocumento.Text     := cdsPessoa.FieldByName('dsdocumento').AsString;
+     vObjForm.edNome.Text          := cdsPessoa.FieldByName('nmprimeiro' ).AsString;
+     vObjForm.edSobrenome.Text     := cdsPessoa.FieldByName('nmsegundo'  ).AsString;
+     vObjForm.rgNatureza.ItemIndex := cdsPessoa.FieldByName('flnatureza' ).AsInteger;
      vObjForm.ShowModal;
+
+     if Assigned(vObjForm.OnClose) then
+     begin
+       RefreshPessoas;
+     end;
 
    finally
      FreeAndNil(vObjForm)
@@ -114,6 +142,26 @@ end;
 procedure TfrmPrincipal.Button1Click(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmPrincipal.cdsPessoaAfterOpen(DataSet: TDataSet);
+begin
+//   tabEndereconmcidadeGetText(Sender: TField;
+//  cdsPessoa.on
+end;
+
+procedure TfrmPrincipal.cdsPessoaflnaturezaGetText(Sender: TField; var Text: String;
+  DisplayText: Boolean);
+begin
+  if DisplayText then begin
+    case cdsPessoa.FieldByName('flnatureza').AsInteger of
+      0: Text := 'Física';
+      1: Text := 'Jurídica';
+    else
+      Text := 'Desconhecido';
+    end;
+  end else
+    Text := cdsPessoa.FieldByName('flnatureza').AsString;
 end;
 
 procedure TfrmPrincipal.edIDChange(Sender: TObject);
@@ -138,20 +186,6 @@ begin
     RefreshPessoas;
 end;
 
-{
-class procedure TfrmPrincipal.ExecuteThread(proc: TProc;
-  procTerminate: TMyThreadMethod);
-var
-  vTread: TThread;
-begin
-  vTread := TThread.CreateAnonymousThread(proc);
-
-  if Assigned(procTerminate) then
-      vTread.OnTerminate := procTerminate;
-
-  vTread.Start;
-end;
-}
 
 procedure TfrmPrincipal.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -164,10 +198,20 @@ begin
   btCadEndereco.Enabled   := not cdsPessoa.IsEmpty;
 end;
 
+procedure TfrmPrincipal.GridPessoaDrawColumnCell(Sender: TObject;
+  const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
+begin
+//  if column.Field.FieldName = 'TP Pessoa' then
+//  begin
+//
+//  end;
+
+end;
+
 procedure TfrmPrincipal.GridPessoaExit(Sender: TObject);
 begin
 //  btEditarExcluir.Enabled := False;
-  btCadEndereco.Enabled   := False;
+//  btCadEndereco.Enabled   := False;
 end;
 
 procedure TfrmPrincipal.RefreshPessoas;
@@ -216,19 +260,18 @@ begin
   begin
     GridPessoa.Columns[0].Width          := 60;
     GridPessoa.Columns[0].Title.Caption  := 'ID';
+    GridPessoa.Columns[0].Alignment      := taCenter;
     GridPessoa.Columns[1].Width          := 140;
     GridPessoa.Columns[1].Title.Caption  := 'Documento';
-    GridPessoa.Columns[2].Width          := 150;
+    GridPessoa.Columns[2].Width          := 200;
     GridPessoa.Columns[2].Title.Caption  := 'Nome';
-    GridPessoa.Columns[3].Width          := 150;
+    GridPessoa.Columns[3].Width          := 200;
     GridPessoa.Columns[3].Title.Caption  := 'Sobrenome';
     GridPessoa.Columns[4].Width          := 120;
     GridPessoa.Columns[4].Title.Caption  := 'Dt.Registro';
-    GridPessoa.Columns[5].Visible        := False;
-    GridPessoa.Columns[6].Width          := 100;
-    GridPessoa.Columns[6].Title.Caption  := 'TP Pessoa';
-    GridPessoa.Columns[7].Width          := 100;
-    GridPessoa.Columns[7].Title.Caption  := 'CEP';
+    GridPessoa.Columns[5].Width          := 100;
+    GridPessoa.Columns[5].Title.Caption  := 'TP Pessoa';
+    GridPessoa.Columns[5].Alignment      := taLeftJustify;
   end;
 end;
 

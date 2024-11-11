@@ -7,7 +7,8 @@ uses
   uPessoaCad in 'uPessoaCad.pas' {FrmPessoaCad},
   uEnderecoCad in 'uEnderecoCad.pas' {frmEnderecoCad},
   uThread in 'uThread.pas',
-  uEditarExcluir in 'uEditarExcluir.pas' {frmEditarExcluir};
+  uEditarExcluir in 'uEditarExcluir.pas' {frmEditarExcluir},
+  uCadastroAutomatizado in 'uCadastroAutomatizado.pas' {frmCadastroAutomatizado};
 
 {$R *.res}
 
@@ -15,6 +16,5 @@ begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TfrmPrincipal, frmPrincipal);
-  Application.CreateForm(TfrmEditarExcluir, frmEditarExcluir);
   Application.Run;
 end.

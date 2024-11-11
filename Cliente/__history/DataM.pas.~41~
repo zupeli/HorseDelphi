@@ -23,7 +23,7 @@ type
     procedure EditarEnderecoIntegracao(pIdEndereco: integer;
       pDados: TFDMemTable);
     procedure AddCEP_Json(pDados: TFDMemTable; rJson : TJSONArray);
-    function AddEndereco_Json(vIdEndereco :integer; pDados: TFDMemTable): TJSONArray;
+    procedure AddEndereco_Json(vIdEndereco :integer; pDados: TFDMemTable; rJson:TJSONArray);
 
 
     { Private declarations }
@@ -36,8 +36,7 @@ type
     procedure ListarEnderecoPessoa(MemTable: TFDMemTable; id_pessoa: integer);
     procedure EditarCEP(pIdPessoa, pIdEndereco: integer; pCEP: string);
     procedure EditarEndereco(pIdEndereco: integer; pDados: TFDMemTable; pAtualizarCEP : boolean);
-    procedure EditarPessoa(pIdPessoa, pFlNatureza: integer; pDocumento, pNome,
-              pSobrenome: string);
+    procedure EditarPessoa(pIdPessoa : integer; pDados: TFDMemTable);
     function ExcluirEndereco(pIdPessoa, pIdEndereco: integer): TJSONValue;
     procedure InserirEndereco(pDados: TFDMemTable);
   end;
@@ -57,41 +56,6 @@ procedure TDM.DataModuleCreate(Sender: TObject);
 begin
   TDataSetSerializeConfig.GetInstance.CaseNameDefinition := cndLower;
   TDataSetSerializeConfig.GetInstance.Import.DecimalSeparator := '.';
-end;
-
-procedure TDM.InserirPessoa(pDados: TFDMemTable);
-var
-  resp: IResponse;
-  vJsonObj : TJsonObject;
-  vJsonArr : TJSONArray;
-begin
-  vJsonArr := TJSONArray.Create;
-  try
-    pDados.First;
-    while not pDados.Eof do
-    begin
-      vJsonObj := TJsonObject.Create;
-      vJsonObj.AddPair('dsdocumento' , pDados.FieldByName('dsdocumento').AsString);
-      vJsonObj.AddPair('nmprimeiro'  , pDados.FieldByName('nmprimeiro' ).AsString);
-      vJsonObj.AddPair('nmsegundo'   , pDados.FieldByName('nmsegundo'  ).AsString);
-      vJsonObj.AddPair('flnatureza'  , pDados.FieldByName('flnatureza' ).AsString);
-
-      vJsonArr.Add(vJsonObj);
-
-      pDados.Next;
-    end;
-
-    resp := TRequest.New.BaseURL('http://localhost:8080')
-                    .Resource('/InserirPessoa')
-                    .AddBody(vJsonArr.ToJSON)
-                    .Accept('application/json')
-                    .Post;
-
-    if resp.StatusCode <> 200 then
-        raise Exception.Create(resp.Content);
-  finally
-    freeAndNil(vJsonObj);
-  end;
 end;
 
 procedure TDM.AddCEP_Json(pDados: TFDMemTable; rJson:TJSONArray);
@@ -114,12 +78,10 @@ begin
   end;
 end;
 
-function TDM.AddEndereco_Json(vIdEndereco :integer; pDados: TFDMemTable):TJSONArray;
+procedure TDM.AddEndereco_Json(vIdEndereco :integer; pDados: TFDMemTable; rJson:TJSONArray);
 var
   vJsonObj : TJsonObject;
-  vJsonArr : TJSONArray;
 begin
-  vJsonArr := TJSONArray.Create;
   try
     pDados.First;
     while not pDados.Eof do
@@ -132,14 +94,12 @@ begin
       vJsonObj.AddPair('nmbairro'     , pDados.FieldByName('nmbairro'     ).AsString);
       vJsonObj.AddPair('nmlogradouro' , pDados.FieldByName('nmlogradouro' ).AsString);
       vJsonObj.AddPair('dscomplemento', pDados.FieldByName('dscomplemento').AsString);
-      vJsonArr.Add(vJsonObj);
+      rJson.Add(vJsonObj);
 
       pDados.Next;
     end;
   finally
-    Result := vJsonArr;
 //    freeAndNil(vJsonObj);
-//    freeAndNil(vJsonArr);
   end;
 end;
 
@@ -148,7 +108,7 @@ var
   resp: IResponse;
   vJsonObj : TJsonObject;
   vJsonArr : TJSONArray;
-  vJsonRet : TJSONArray;
+//  vJsonRet : TJSONArray;
   vIdEndereco : Integer;
 begin
 
@@ -163,20 +123,21 @@ begin
                     .Accept('application/json')
                     .Post;
 
-    vJsonRet := TJSONArray.Create;
+    vJsonObj := TJsonObject.Create;
     try
-      vJsonArr    := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(resp.Content),0) as  TJSONArray;
-      vIdEndereco := vJsonArr[0].GetValue<integer>('idendereco', 0);
+      vJsonObj    := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(resp.Content),0) as  TJsonObject;
+      vIdEndereco := vJsonObj.GetValue<integer>('idendereco', 0);
+      vJsonObj.DisposeOf;
     except
 //      ShowMessage('Memo não é um complexType!');
-      vJsonRet.DisposeOf;
+      vJsonObj.DisposeOf;
     end;
 
     vJsonArr.DisposeOf;
     if vIdEndereco > 0 then
     begin
       vJsonArr := TJSONArray.Create;
-      vJsonArr.Add(AddEndereco_Json(vIdEndereco, pDados));
+      AddEndereco_Json(vIdEndereco, pDados, vJsonArr);
 
       resp := TRequest.New.BaseURL('http://localhost:8080')
                       .Resource('/endereco/integracao')
@@ -184,11 +145,15 @@ begin
                       .Accept('application/json')
                       .Post;
 
+      vJsonArr.DisposeOf;
       if resp.StatusCode <> 200 then
+      begin
           raise Exception.Create(resp.Content);
+      end;
+
     end;
   finally
-    freeAndNil(vJsonObj);
+//    freeAndNil(vJsonObj);
 //    freeAndNil(vJsonArr);
   end;
 end;
@@ -226,31 +191,73 @@ begin
       raise Exception.Create(resp.Content);
 end;
 
-procedure TDM.EditarPessoa(pIdPessoa, pFlNatureza : integer;
-                           pDocumento, pNome, pSobrenome : string);
+procedure TDM.InserirPessoa(pDados: TFDMemTable);
 var
-  resp  : IResponse;
-  vJson : TJsonObject;
+  resp: IResponse;
+  vJsonObj : TJsonObject;
+  vJsonArr : TJSONArray;
 begin
+  vJsonArr := TJSONArray.Create;
   try
-    vJson := TJsonObject.Create;
-    vJson.AddPair('dsdocumento', pDocumento);
-    vJson.AddPair('nmprimeiro' , pNome);
-    vJson.AddPair('nmsegundo'  , pSobrenome);
-    vJson.AddPair('flnatureza' , pFlNatureza);
+    pDados.First;
+    while not pDados.Eof do
+    begin
+      vJsonObj := TJsonObject.Create;
+      vJsonObj.AddPair('dsdocumento' , pDados.FieldByName('dsdocumento').AsString);
+      vJsonObj.AddPair('nmprimeiro'  , pDados.FieldByName('nmprimeiro' ).AsString);
+      vJsonObj.AddPair('nmsegundo'   , pDados.FieldByName('nmsegundo'  ).AsString);
+      vJsonObj.AddPair('flnatureza'  , pDados.FieldByName('flnatureza' ).AsString);
 
+      vJsonArr.Add(vJsonObj);
+
+      pDados.Next;
+    end;
+
+    resp := TRequest.New.BaseURL('http://localhost:8080')
+                    .Resource('/InserirPessoa')
+                    .AddBody(vJsonArr.ToJSON)
+                    .Accept('application/json')
+                    .Post;
+
+    if resp.StatusCode <> 200 then
+        raise Exception.Create(resp.Content);
+  finally
+    freeAndNil(vJsonObj);
+  end;
+end;
+
+procedure TDM.EditarPessoa(pIdPessoa : integer; pDados: TFDMemTable);
+var
+  resp     : IResponse;
+  vJsonObj : TJsonObject;
+  vJsonArr : TJSONArray;
+begin
+  vJsonArr := TJSONArray.Create;
+  try
+    pDados.First;
+    while not pDados.Eof do
+    begin
+      vJsonObj := TJsonObject.Create;
+      vJsonObj.AddPair('dsdocumento', pDados.FieldByName('dsdocumento').AsString);
+      vJsonObj.AddPair('nmprimeiro' , pDados.FieldByName('nmprimeiro' ).AsString);
+      vJsonObj.AddPair('nmsegundo'  , pDados.FieldByName('nmsegundo'  ).AsString);
+      vJsonObj.AddPair('flnatureza' , pDados.FieldByName('flnatureza' ).AsString);
+
+      vJsonArr.Add(vJsonObj);
+      pDados.Next;
+    end;
 
     resp := TRequest.New.BaseURL('http://localhost:8080')
                     .Resource('/pessoa')
                     .ResourceSuffix(pIdPessoa.ToString)
-                    .AddBody(vJson.ToJSON)
+                    .AddBody(vJsonArr.ToJSON)
                     .Accept('application/json')
                     .Put;
 
     if resp.StatusCode <> 201 then
         raise Exception.Create(resp.Content);
   finally
-    freeAndNil(vJson);
+    freeAndNil(vJsonObj);
   end;
 end;
 
@@ -300,7 +307,7 @@ begin
         raise Exception.Create(resp.Content);
   finally
     vJsonObj.DisposeOf;
-    freeAndNil(vJsonArr);
+//    freeAndNil(vJsonArr);
   end;
 end;
 
@@ -312,11 +319,12 @@ begin
   try
     vJson := TJsonObject.Create;
     vJson.AddPair('dscep', pCEP);
+    vJson.AddPair('idendereco', pIdEndereco);
 
     resp := TRequest.New.BaseURL('http://localhost:8080')
                     .Resource('/endereco')
-                    .AddParam('id_pessoa'  , pIdPessoa.ToString)
-                    .AddParam('id_endereco', pIdEndereco.ToString)
+                    .ResourceSuffix(pIdPessoa.ToString)
+//                    .AddParam('id_endereco', pIdEndereco.ToString)
                     .AddBody(vJson.ToJSON)
                     .Accept('application/json')
                     .Put;

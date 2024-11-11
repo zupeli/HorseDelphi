@@ -221,6 +221,9 @@ begin
     end;
 
   idPessoa := 0;
+  edDocumento.Text := '';
+  edNome.Text := '';
+  edSobrenome.Text := '';
   ShowMessage('Pessoa excluida!');
   btExcluirPessoa.Enabled := False;
   btEditarPessoa.Enabled  := False;

@@ -33,6 +33,7 @@ type
     procedure ListarPessoaId(MemTable: TFDMemTable; id_pessoa: integer);
     procedure InserirPessoa(pDados: TFDMemTable);
     function ExcluirPessoa(pIdPessoa: integer):TJSONValue;
+    function ExcluirPessoaDropAll:TJSONValue;
     procedure ListarEnderecoPessoa(MemTable: TFDMemTable; id_pessoa: integer);
     procedure EditarCEP(pIdPessoa, pIdEndereco: integer; pCEP: string);
     procedure EditarEndereco(pIdEndereco: integer; pDados: TFDMemTable; pAtualizarCEP : boolean);
@@ -196,10 +197,12 @@ var
   resp: IResponse;
   vJsonObj : TJsonObject;
   vJsonArr : TJSONArray;
+  vCont    : Int64;
 begin
   vJsonArr := TJSONArray.Create;
   try
     pDados.First;
+    vCont := 1;
     while not pDados.Eof do
     begin
       vJsonObj := TJsonObject.Create;
@@ -209,16 +212,30 @@ begin
       vJsonObj.AddPair('flnatureza'  , pDados.FieldByName('flnatureza' ).AsString);
 
       vJsonArr.Add(vJsonObj);
-
-      pDados.Next;
-    end;
-
-    resp := TRequest.New.BaseURL('http://localhost:8080')
+      Inc(vCont);
+      if vCont > 10000 then
+      begin
+        resp := TRequest.New.BaseURL('http://localhost:8080')
                     .Resource('/InserirPessoa')
                     .AddBody(vJsonArr.ToJSON)
                     .Accept('application/json')
                     .Post;
+        vJsonArr := TJSONArray.Create;
+        vCont := 1;
+      end;
 
+
+      pDados.Next;
+    end;
+
+    if vJsonArr.Count >= 1 then
+    begin
+      resp := TRequest.New.BaseURL('http://localhost:8080')
+                      .Resource('/InserirPessoa')
+                      .AddBody(vJsonArr.ToJSON)
+                      .Accept('application/json')
+                      .Post;
+    end;
     if resp.StatusCode <> 200 then
         raise Exception.Create(resp.Content);
   finally
@@ -364,6 +381,24 @@ begin
                     .Accept('application/json')
                     .Delete;
 
+
+    if resp.StatusCode <> 200 then
+        raise Exception.Create(resp.Content);
+
+  finally
+    Result := resp.JSONValue;
+  end;
+end;
+
+function TDM.ExcluirPessoaDropAll:TJSONValue;
+var
+  resp: IResponse;
+begin
+  try
+    resp := TRequest.New.BaseURL('http://localhost:8080')
+                    .Resource('/pessoa/excluirAll')
+                    .Accept('application/json')
+                    .Delete;
 
     if resp.StatusCode <> 200 then
         raise Exception.Create(resp.Content);

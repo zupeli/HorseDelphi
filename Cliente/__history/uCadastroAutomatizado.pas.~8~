@@ -1,0 +1,205 @@
+unit uCadastroAutomatizado;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.StdCtrls,
+  Datasnap.DBClient, Vcl.Grids, Vcl.DBGrids, uThread, Vcl.ExtCtrls,
+  DataM, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client;
+
+type
+  TfrmCadastroAutomatizado = class(TForm)
+    InserirBanco: TButton;
+    DBGridBanco: TDBGrid;
+    dtsBanco: TDataSource;
+    edDoc: TEdit;
+    edNome: TEdit;
+    edSobrenome: TEdit;
+    DBGridLocal: TDBGrid;
+    InserirGrid: TButton;
+    cdsGrid: TClientDataSet;
+    dtsGrid: TDataSource;
+    cdsGrididPessoa: TIntegerField;
+    cdsGridflNatureza: TIntegerField;
+    cdsGriddsNome: TStringField;
+    cdsGriddsSobrenome: TStringField;
+    cdsGriddtRegistro: TDateField;
+    edQtd: TEdit;
+    btSair: TButton;
+    Label1: TLabel;
+    FDMemTable: TFDMemTable;
+    FDMemTableidPessoa: TIntegerField;
+    FDMemTableflNatureza: TIntegerField;
+    FDMemTabledsNome: TStringField;
+    FDMemTabledsSobrenome: TStringField;
+    FDMemTabledtRegistro: TDateField;
+    FDMT_Banco: TFDMemTable;
+    IntegerField1: TIntegerField;
+    IntegerField2: TIntegerField;
+    StringField1: TStringField;
+    StringField2: TStringField;
+    DateField1: TDateField;
+    btAtualizar: TButton;
+    procedure btSairClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure InserirGridClick(Sender: TObject);
+    procedure InserirBancoClick(Sender: TObject);
+    procedure btAtualizarClick(Sender: TObject);
+  private
+    FStart : TDateTime;
+    procedure TerminateInserirGrid(Sender: TObject);
+    procedure Loop;
+    procedure TerminateInserirBanco(Sender: TObject);
+    procedure RefreshBanco;
+    procedure TerminateBusca(Sender: TObject);
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmCadastroAutomatizado: TfrmCadastroAutomatizado;
+
+implementation
+
+{$R *.dfm}
+
+procedure TfrmCadastroAutomatizado.btAtualizarClick(Sender: TObject);
+begin
+  RefreshBanco;
+end;
+
+procedure TfrmCadastroAutomatizado.btSairClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TfrmCadastroAutomatizado.FormCreate(Sender: TObject);
+begin
+  cdsGrid.CreateDataSet;
+  FDMemTable.CreateDataSet;
+  FDMT_Banco.CreateDataSet;
+end;
+
+procedure TfrmCadastroAutomatizado.Loop;
+var
+  I, vQtd: Int64;
+begin
+  vQtd := StrToInt64Def(edQtd.Text,1);
+  I := 1;
+  for I := 1 to vQtd do
+  begin
+    FDMemTable.Insert;
+    FDMemTableidPessoa.Value    := I;
+    FDMemTableflNatureza.Value  := 0;
+    FDMemTabledsNome.Value      := edNome.Text      + ' ' + I.ToString;
+    FDMemTabledsSobrenome.Value := edSobrenome.Text + ' ' + I.ToString;
+    FDMemTabledtRegistro.Value  := Now;
+
+    FDMemTable.Post;
+    {
+    cdsGrid.Insert;
+    cdsGrididPessoa.Value    := I;
+    cdsGridflNatureza.Value  := 0;
+    cdsGriddsNome.Value      := edNome.Text      + ' ' + I.ToString;
+    cdsGriddsSobrenome.Value := edSobrenome.Text + ' ' + I.ToString;
+    cdsGriddtRegistro.Value  := Now;
+
+    cdsGrid.Post;
+    }
+  end;
+end;
+
+procedure TfrmCadastroAutomatizado.InserirBancoClick(Sender: TObject);
+begin
+  FStart := Now;
+  TMyThread.ExecuteThread(procedure
+  begin
+    DM.InserirPessoa(FDMemTable);
+  end, TerminateInserirBanco);
+end;
+
+procedure TfrmCadastroAutomatizado.TerminateInserirBanco(Sender: TObject);
+begin
+  cdsGrid.EnableControls;
+  if Sender is TThread then
+    if Assigned(TThread(sender).FatalException) then
+    begin
+      showmessage(Exception(TThread(sender).FatalException).Message);
+      exit;
+    end;
+
+  Label1.Caption := FormatDateTime('HH:nn:ss', Now-FStart);
+  InserirBanco.Enabled := True;
+end;
+
+procedure TfrmCadastroAutomatizado.InserirGridClick(Sender: TObject);
+begin
+  FStart := Now;
+  TMyThread.ExecuteThread(procedure
+  begin
+//    cdsGrid.EmptyDataSet;
+    FDMemTable.EmptyDataSet;
+    InserirGrid.Enabled := False;
+//    cdsGrid.DisableControls;
+    FDMemTable.DisableControls;
+    Loop;
+  end, TerminateInserirGrid);
+
+end;
+
+procedure TfrmCadastroAutomatizado.TerminateInserirGrid(Sender: TObject);
+begin
+//  cdsGrid.EnableControls;
+  FDMemTable.EnableControls;
+  if Sender is TThread then
+    if Assigned(TThread(sender).FatalException) then
+    begin
+      showmessage(Exception(TThread(sender).FatalException).Message);
+      exit;
+    end;
+
+  Label1.Caption := FormatDateTime('HH:nn:ss', Now-FStart);
+  InserirGrid.Enabled := True;
+//  ShowMessage('Dados Inseridos.');
+end;
+
+procedure TfrmCadastroAutomatizado.RefreshBanco;
+begin
+  FStart := Now;
+  TMyThread.ExecuteThread(procedure
+  begin
+    // Acessar o servidor...
+    DBGridBanco.DataSource := nil;
+
+    DM.ListarPessoas(FDMT_Banco, '');
+
+
+    // Atualizar o DBGrid.
+    Tthread.Synchronize(Tthread.CurrentThread, procedure
+    begin
+      DBGridBanco.DataSource := dtsBanco;
+    end);
+  end,
+  TerminateBusca);
+
+end;
+
+procedure TfrmCadastroAutomatizado.TerminateBusca(Sender: TObject);
+begin
+//  IdentarGrid;
+
+  if Sender is TThread then
+    if Assigned(TThread(Sender).FatalException) then
+    begin
+      showmessage(Exception(TThread(sender).FatalException).Message);
+      exit;
+    end;
+
+  Label1.Caption := FormatDateTime('HH:nn:ss', Now-FStart);
+end;
+
+end.

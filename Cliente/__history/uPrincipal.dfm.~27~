@@ -46,6 +46,7 @@ object frmPrincipal: TfrmPrincipal
       Caption = 'Alterar/Apagar'
       Enabled = False
       TabOrder = 2
+      OnClick = btEditarExcluirClick
     end
     object btCadEndereco: TButton
       Left = 149
@@ -55,6 +56,16 @@ object frmPrincipal: TfrmPrincipal
       Caption = 'Cadastrar Endere'#231'o'
       Enabled = False
       TabOrder = 1
+      OnClick = btCadEnderecoClick
+    end
+    object btAutomatizado: TButton
+      Left = 566
+      Top = 17
+      Width = 46
+      Height = 25
+      Caption = 'Auto'
+      TabOrder = 3
+      OnClick = btAutomatizadoClick
     end
   end
   object GroupBox2: TGroupBox
@@ -92,6 +103,7 @@ object frmPrincipal: TfrmPrincipal
       TitleFont.Name = 'Segoe UI'
       TitleFont.Style = []
       OnCellClick = GridPessoaCellClick
+      OnDrawColumnCell = GridPessoaDrawColumnCell
       OnExit = GridPessoaExit
     end
     object btPesquisar: TButton
@@ -124,6 +136,7 @@ object frmPrincipal: TfrmPrincipal
     end
   end
   object cdsPessoa: TFDMemTable
+    AfterOpen = cdsPessoaAfterOpen
     FieldDefs = <>
     IndexDefs = <>
     FetchOptions.AssignedValues = [evMode]
@@ -137,6 +150,26 @@ object frmPrincipal: TfrmPrincipal
     StoreDefs = True
     Left = 464
     Top = 176
+    object cdsPessoaidpessoa: TIntegerField
+      FieldName = 'idpessoa'
+    end
+    object cdsPessoadsdocumento: TStringField
+      FieldName = 'dsdocumento'
+    end
+    object cdsPessoanmprimeiro: TStringField
+      FieldName = 'nmprimeiro'
+    end
+    object cdsPessoanmsegundo: TStringField
+      FieldName = 'nmsegundo'
+    end
+    object cdsPessoadtregistro: TDateField
+      FieldName = 'dtregistro'
+    end
+    object cdsPessoaflnatureza: TIntegerField
+      Alignment = taLeftJustify
+      FieldName = 'flnatureza'
+      OnGetText = cdsPessoaflnaturezaGetText
+    end
   end
   object dtsPessoa: TDataSource
     DataSet = cdsPessoa

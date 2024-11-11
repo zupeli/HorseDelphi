@@ -29,6 +29,14 @@ type
     edNome: TEdit;
     btEditarExcluir: TButton;
     btCadEndereco: TButton;
+    cdsPessoaflnatureza: TIntegerField;
+    cdsPessoaidpessoa: TIntegerField;
+    cdsPessoadsdocumento: TStringField;
+    cdsPessoanmprimeiro: TStringField;
+    cdsPessoanmsegundo: TStringField;
+    cdsPessoadtregistro: TDateField;
+    btAutomatizado: TButton;
+
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure btPesquisarClick(Sender: TObject);
@@ -41,10 +49,19 @@ type
     procedure GridPessoaExit(Sender: TObject);
     procedure btEditarExcluirClick(Sender: TObject);
     procedure btCadEnderecoClick(Sender: TObject);
+    procedure GridPessoaDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure cdsPessoaAfterOpen(DataSet: TDataSet);
+    procedure cdsPessoaflnaturezaGetText(Sender: TField; var Text: String;
+      DisplayText: Boolean);
+    procedure btAutomatizadoClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     procedure RefreshPessoas;
     procedure TerminateBusca(Sender: TObject);
     procedure IdentarGrid;
+    function VersaoExe: String;
+
     { Private declarations }
   public
     { Public declarations }
@@ -58,7 +75,7 @@ implementation
 
 {$R *.dfm}
 
-uses DataM, uThread, uPessoaCad, uEditarExcluir, uEnderecoCad;
+uses DataM, uThread, uPessoaCad, uEditarExcluir, uEnderecoCad, uCadastroAutomatizado;
 
 procedure TfrmPrincipal.btCadastroPessoaClick(Sender: TObject);
 var
@@ -81,7 +98,9 @@ begin
    vObjForm := TfrmEnderecoCad.create(nil);
    try
      vObjForm.idEndereco := 0;
-     vObjForm.idPessoa   := cdsPessoa.FieldByName('idpessoa'   ).AsInteger;
+     vObjForm.idPessoa   := cdsPessoa.FieldByName('idpessoa'  ).AsInteger;
+     vObjForm.dsPessoa   := cdsPessoa.FieldByName('idpessoa'  ).Asstring + ' - ' +
+                            cdsPessoa.FieldByName('nmprimeiro').AsString;
      vObjForm.ShowModal;
 
      if Assigned(vObjForm.OnClose) then
@@ -110,7 +129,7 @@ begin
 
      if Assigned(vObjForm.OnClose) then
      begin
-      RefreshPessoas;
+       RefreshPessoas;
      end;
 
    finally
@@ -127,6 +146,38 @@ end;
 procedure TfrmPrincipal.Button1Click(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmPrincipal.btAutomatizadoClick(Sender: TObject);
+var
+ vObjCad : TfrmCadastroAutomatizado;
+begin
+  vObjCad := TfrmCadastroAutomatizado.Create(nil);
+  try
+    vObjCad.ShowModal;
+  finally
+    FreeAndNil(vObjCad);
+  end;
+end;
+
+procedure TfrmPrincipal.cdsPessoaAfterOpen(DataSet: TDataSet);
+begin
+//   tabEndereconmcidadeGetText(Sender: TField;
+//  cdsPessoa.on
+end;
+
+procedure TfrmPrincipal.cdsPessoaflnaturezaGetText(Sender: TField; var Text: String;
+  DisplayText: Boolean);
+begin
+  if DisplayText then begin
+    case cdsPessoa.FieldByName('flnatureza').AsInteger of
+      0: Text := 'Física';
+      1: Text := 'Jurídica';
+    else
+      Text := 'Desconhecido';
+    end;
+  end else
+    Text := cdsPessoa.FieldByName('flnatureza').AsString;
 end;
 
 procedure TfrmPrincipal.edIDChange(Sender: TObject);
@@ -157,10 +208,57 @@ begin
   Action := TCloseAction.caFree;
 end;
 
+procedure TfrmPrincipal.FormShow(Sender: TObject);
+begin
+  Caption := Caption + ' - '+  VersaoExe;
+end;
+
+Function TfrmPrincipal.VersaoExe: String;
+type
+    PFFI = ^vs_FixedFileInfo;
+var
+    F : PFFI;
+    Handle : Dword;
+    Len : Longint;
+    Data : Pchar;
+    Buffer : Pointer;
+    Tamanho : Dword;
+    Parquivo: Pchar;
+    Arquivo : String;
+begin
+    Arquivo := Application.ExeName;
+    Parquivo := StrAlloc(Length(Arquivo) + 1);
+    StrPcopy(Parquivo, Arquivo);
+    Len := GetFileVersionInfoSize(Parquivo, Handle);
+    Result := '';
+        if Len > 0 then
+        begin
+            Data:=StrAlloc(Len+1);
+            if GetFileVersionInfo(Parquivo,Handle,Len,Data) then
+            begin
+                VerQueryValue(Data, '\',Buffer,Tamanho);
+                F := PFFI(Buffer);
+                Result := Format('%d.%d.%d.%d',[HiWord(F^.dwFileVersionMs),LoWord(F^.dwFileVersionMs),HiWord(F^.dwFileVersionLs),Loword(F^.dwFileVersionLs)]);
+            end;
+            StrDispose(Data);
+        end;
+        StrDispose(Parquivo);
+end;
+
 procedure TfrmPrincipal.GridPessoaCellClick(Column: TColumn);
 begin
   btEditarExcluir.Enabled := not cdsPessoa.IsEmpty;
   btCadEndereco.Enabled   := not cdsPessoa.IsEmpty;
+end;
+
+procedure TfrmPrincipal.GridPessoaDrawColumnCell(Sender: TObject;
+  const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
+begin
+//  if column.Field.FieldName = 'TP Pessoa' then
+//  begin
+//
+//  end;
+
 end;
 
 procedure TfrmPrincipal.GridPessoaExit(Sender: TObject);
@@ -215,19 +313,18 @@ begin
   begin
     GridPessoa.Columns[0].Width          := 60;
     GridPessoa.Columns[0].Title.Caption  := 'ID';
+    GridPessoa.Columns[0].Alignment      := taCenter;
     GridPessoa.Columns[1].Width          := 140;
     GridPessoa.Columns[1].Title.Caption  := 'Documento';
-    GridPessoa.Columns[2].Width          := 150;
+    GridPessoa.Columns[2].Width          := 200;
     GridPessoa.Columns[2].Title.Caption  := 'Nome';
-    GridPessoa.Columns[3].Width          := 150;
+    GridPessoa.Columns[3].Width          := 200;
     GridPessoa.Columns[3].Title.Caption  := 'Sobrenome';
     GridPessoa.Columns[4].Width          := 120;
     GridPessoa.Columns[4].Title.Caption  := 'Dt.Registro';
-    GridPessoa.Columns[5].Visible        := False;
-    GridPessoa.Columns[6].Width          := 100;
-    GridPessoa.Columns[6].Title.Caption  := 'TP Pessoa';
-    GridPessoa.Columns[7].Width          := 100;
-    GridPessoa.Columns[7].Title.Caption  := 'CEP';
+    GridPessoa.Columns[5].Width          := 100;
+    GridPessoa.Columns[5].Title.Caption  := 'TP Pessoa';
+    GridPessoa.Columns[5].Alignment      := taLeftJustify;
   end;
 end;
 

@@ -22,5 +22,8 @@
     <Transaction>2024/11/01 16:47:52.000.983,=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
     <Transaction>2024/11/01 16:51:55.000.288,D:\Aulas\Delphi\Proj Horse\Cliente\uEditarExcluir.dfm=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.dfm</Transaction>
     <Transaction>2024/11/01 16:51:55.000.288,D:\Aulas\Delphi\Proj Horse\Cliente\uEditarExcluir.pas=D:\Aulas\Delphi\Proj Horse\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/11/11 13:09:59.000.836,=D:\Aulas\Delphi\Proj Horse\HorseDelphi\Cliente\Unit1.pas</Transaction>
+    <Transaction>2024/11/11 13:23:35.000.505,D:\Aulas\Delphi\Proj Horse\HorseDelphi\Cliente\Unit1.pas=D:\Aulas\Delphi\Proj Horse\HorseDelphi\Cliente\uCadastroAutomatizado.pas</Transaction>
+    <Transaction>2024/11/11 13:23:35.000.505,D:\Aulas\Delphi\Proj Horse\HorseDelphi\Cliente\Unit1.dfm=D:\Aulas\Delphi\Proj Horse\HorseDelphi\Cliente\uCadastroAutomatizado.dfm</Transaction>
   </Transactions>
 </BorlandProject>

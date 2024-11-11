@@ -16,7 +16,6 @@ type
     FDocumento: Integer;
     Fnatureza: Integer;
 
-
 //    procedure ListarPessoa_Id(Req: ThorseRequest; Res: THorseResponse;
 //              Next: Tproc);
   public
@@ -25,6 +24,7 @@ type
     function ExcluirPessoa : TJsonObject;
     function InserirPessoa : TJsonObject;
     function EditarPessoa  : TJsonObject;
+    function ExcluirPessoaDropAll: TJsonObject;
 
     property idPessoa  : Integer  read FidPessoa   write FidPessoa;
     property Natureza  : Integer  read Fnatureza   write Fnatureza;
@@ -142,6 +142,30 @@ begin
   end;
 end;
 
+function TPessoa.ExcluirPessoaDropAll:TJsonObject;
+var
+  vQry : TFDQuery;
+  DM   : TDM;
+begin
+  try
+    vQry := TFDQuery.Create(nil);
+    DM   := TDM.Create(nil);
+    vQry.Connection := DM.FDConn_base;
+
+    try
+      vQry.SQL.Text := 'delete from pessoa';
+      vQry.ExecSQL;
+    except
+    end;
+
+    Result := vQry.ToJsonObject;
+    vQry.Close;
+  finally
+    FreeAndNil(vQry);
+    FreeAndNil(DM);
+  end;
+end;
+
 Function TPessoa.ListarPessoa:TJsonArray;
 var
   vQry : TFDQuery;
@@ -169,7 +193,9 @@ begin
       vQry.ParamByName('filtro').Value := '%' + Nome + '%';
     end;
 
-    vQry.SQL.Add('order by nmprimeiro, nmsegundo, dtregistro');
+//    vQry.SQL.Add('order by nmprimeiro, nmsegundo, dtregistro');
+    vQry.SQL.Add('order by idpessoa desc');
+
     vQry.SQL.Add('limit 1000');
     vQry.open;
 

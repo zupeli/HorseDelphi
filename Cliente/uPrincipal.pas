@@ -35,6 +35,7 @@ type
     cdsPessoanmprimeiro: TStringField;
     cdsPessoanmsegundo: TStringField;
     cdsPessoadtregistro: TDateField;
+    btAutomatizado: TButton;
 
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
@@ -53,10 +54,14 @@ type
     procedure cdsPessoaAfterOpen(DataSet: TDataSet);
     procedure cdsPessoaflnaturezaGetText(Sender: TField; var Text: String;
       DisplayText: Boolean);
+    procedure btAutomatizadoClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     procedure RefreshPessoas;
     procedure TerminateBusca(Sender: TObject);
     procedure IdentarGrid;
+    function VersaoExe: String;
+    function GetVersion: string;
 
     { Private declarations }
   public
@@ -71,7 +76,7 @@ implementation
 
 {$R *.dfm}
 
-uses DataM, uThread, uPessoaCad, uEditarExcluir, uEnderecoCad;
+uses DataM, uThread, uPessoaCad, uEditarExcluir, uEnderecoCad, uCadastroAutomatizado;
 
 procedure TfrmPrincipal.btCadastroPessoaClick(Sender: TObject);
 var
@@ -144,6 +149,18 @@ begin
   Close;
 end;
 
+procedure TfrmPrincipal.btAutomatizadoClick(Sender: TObject);
+var
+ vObjCad : TfrmCadastroAutomatizado;
+begin
+  vObjCad := TfrmCadastroAutomatizado.Create(nil);
+  try
+    vObjCad.ShowModal;
+  finally
+    FreeAndNil(vObjCad);
+  end;
+end;
+
 procedure TfrmPrincipal.cdsPessoaAfterOpen(DataSet: TDataSet);
 begin
 //   tabEndereconmcidadeGetText(Sender: TField;
@@ -190,6 +207,69 @@ end;
 procedure TfrmPrincipal.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Action := TCloseAction.caFree;
+end;
+
+procedure TfrmPrincipal.FormShow(Sender: TObject);
+begin
+  Caption := Caption + ' - ' +  VersaoExe;
+//  Caption := Caption + ' - ' +  GetVersion;
+end;
+
+Function TfrmPrincipal.VersaoExe: String;
+type
+    PFFI = ^vs_FixedFileInfo;
+var
+    F : PFFI;
+    Handle : Dword;
+    Len : Longint;
+    Data : Pchar;
+    Buffer : Pointer;
+    Tamanho : Dword;
+    Parquivo: Pchar;
+    Arquivo : String;
+begin
+    Arquivo := Application.ExeName;
+    Parquivo := StrAlloc(Length(Arquivo) + 1);
+    StrPcopy(Parquivo, Arquivo);
+    Len := GetFileVersionInfoSize(Parquivo, Handle);
+    Result := '';
+        if Len > 0 then
+        begin
+            Data:=StrAlloc(Len+1);
+            if GetFileVersionInfo(Parquivo,Handle,Len,Data) then
+            begin
+                VerQueryValue(Data, '\',Buffer,Tamanho);
+                F := PFFI(Buffer);
+                Result := Format('%d.%d.%d.%d',[HiWord(F^.dwFileVersionMs),
+                                                LoWord(F^.dwFileVersionMs),
+                                                HiWord(F^.dwFileVersionLs),
+                                                Loword(F^.dwFileVersionLs)]);
+            end;
+            StrDispose(Data);
+        end;
+        StrDispose(Parquivo);
+end;
+
+function TfrmPrincipal.GetVersion: string;
+var
+  VerInfoSize: DWORD;
+  VerInfo: Pointer;
+  VerValueSize: DWORD;
+  VerValue: PVSFixedFileInfo;
+  Dummy: DWORD;
+begin
+  VerInfoSize := GetFileVersionInfoSize(PChar(ParamStr(0)), Dummy);
+  GetMem(VerInfo, VerInfoSize);
+  GetFileVersionInfo(PChar(ParamStr(0)), 0, VerInfoSize, VerInfo);
+  VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize);
+  with VerValue^ do
+  begin
+    Result := IntToStr(dwFileVersionMS shr 16);
+    Result := Result + '.' + IntToStr(dwFileVersionMS and $FFFF);
+    Result := Result + '.' + IntToStr(dwFileVersionLS shr 16);
+    Result := Result + '.' + IntToStr(dwFileVersionLS and $FFFF);
+  end;
+  FreeMem(VerInfo, VerInfoSize);
 end;
 
 procedure TfrmPrincipal.GridPessoaCellClick(Column: TColumn);

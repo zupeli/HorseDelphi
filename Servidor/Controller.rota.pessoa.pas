@@ -9,7 +9,9 @@ procedure Listar(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
 procedure Listar_Id(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
 procedure InserirPessoa(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
 procedure ExcluirPessoa(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+procedure ExcluirDropAll(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
 procedure EditarPessoa(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+
 
 implementation
 
@@ -24,6 +26,7 @@ begin
   Thorse.post('/InserirPessoa'      , InserirPessoa);
   Thorse.put('/pessoa/:id_pessoa'   , EditarPessoa);
   Thorse.Delete('/pessoa/:id_pessoa', ExcluirPessoa);
+  Thorse.Delete('/pessoa/excluirAll', ExcluirDropAll);
 end;
 
 procedure EditarPessoa(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
@@ -98,6 +101,24 @@ begin
   finally
     FreeAndNil(vOjbPessoa);
     vJsonArr.DisposeOf;
+  end;
+end;
+
+
+procedure ExcluirDropAll(Req: ThorseRequest; Res: THorseResponse; Next: Tproc);
+var
+  vOjbPessoa : Tpessoa;
+begin
+  try
+    vOjbPessoa := Tpessoa.Create;
+    try
+      Res.Send<TJsonObject>(vOjbPessoa.ExcluirPessoaDropAll).Status(200);
+
+    except on ex:exception do
+      Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+    end;
+  finally
+    FreeAndNil(vOjbPessoa);
   end;
 end;
 

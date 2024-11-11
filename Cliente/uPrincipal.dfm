@@ -13,6 +13,7 @@ object frmPrincipal: TfrmPrincipal
   Font.Style = []
   Position = poMainFormCenter
   OnClose = FormClose
+  OnShow = FormShow
   TextHeight = 15
   object Button1: TButton
     Left = 558
@@ -57,6 +58,15 @@ object frmPrincipal: TfrmPrincipal
       Enabled = False
       TabOrder = 1
       OnClick = btCadEnderecoClick
+    end
+    object btAutomatizado: TButton
+      Left = 566
+      Top = 17
+      Width = 46
+      Height = 25
+      Caption = 'Auto'
+      TabOrder = 3
+      OnClick = btAutomatizadoClick
     end
   end
   object GroupBox2: TGroupBox
